@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle de Eventos e Custos</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --primary: #1d4ed8;
+      --primary-dark: #1e40af;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 8px;
+      --space: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab-button {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .tab-button.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    section.tab {
+      display: none;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
+    }
+    section.tab.active { display: block; }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    p.description {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px 16px;
+      margin-bottom: 16px;
+    }
+    label {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+    input:focus, select:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 0;
+      border-color: var(--primary);
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary {
+      background: #f9fafb;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 11px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th { font-weight: 600; font-size: 12px; color: var(--text-muted); }
+    tr:hover td { background: #f9fafb; }
+    .clickable {
+      cursor: pointer;
+      color: var(--primary);
+    }
+    .align-right { text-align: right; }
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .status-positive { background: #dcfce7; color: #166534; }
+    .status-negative { background: #fee2e2; color: #b91c1c; }
+    .status-neutral { background: #e5e7eb; color: #374151; }
+
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .flex-row > * { flex: 1 1 160px; }
+
+    .summary-box {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    /* Calendário */
+    .calendar-container {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .calendar-header, .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      font-size: 11px;
+    }
+    .calendar-header div {
+      padding: 6px 4px;
+      background: #f9fafb;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .calendar-day {
+      min-height: 70px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .calendar-day:nth-child(7n) { border-right: none; }
+    .calendar-day-number {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .calendar-event {
+      border-radius: 6px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      padding: 2px 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    /* Modal simples */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 16px;
+      max-width: 420px;
+      width: calc(100% - 32px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      font-size: 13px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+    .modal-content p { margin: 4px 0; }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      main { padding: 12px; }
+      section.tab { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Controle de Eventos e Custos</h1>
+    <nav class="tabs" aria-label="Navegação principal">
+      <button class="tab-button active" data-tab="tab1">1. Eventos</button>
+      <button class="tab-button" data-tab="tab2">2. Calendário</button>
+      <button class="tab-button" data-tab="tab3">3. Resultado mensal</button>
+      <button class="tab-button" data-tab="tab4">4. Resumo por mês</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Aba 1: Cadastro de eventos -->
+    <section id="tab1" class="tab active" aria-label="Cadastro de eventos">
+      <h2>Cadastro e edição de eventos</h2>
+      <p class="description">Inclua e edite os dados de cada evento. Essas informações alimentam automaticamente o calendário e os relatórios mensais.</p>
+
+      <form id="eventForm">
+        <input type="hidden" id="eventId" />
+        <div>
+          <label for="eventName">Nome do evento</label>
+          <input id="eventName" required />
+        </div>
+        <div>
+          <label for="eventDate">Data</label>
+          <input id="eventDate" type="date" required />
+        </div>
+        <div>
+          <label for="eventTime">Hora</label>
+          <input id="eventTime" type="time" />
+        </div>
+        <div>
+          <label for="eventLocation">Local</label>
+          <input id="eventLocation" />
+        </div>
+        <div>
+          <label for="eventPackage">Pacote escolhido</label>
+          <input id="eventPackage" />
+        </div>
+        <div>
+          <label for="eventTeam">Nome da equipe</label>
+          <input id="eventTeam" />
+        </div>
+        <div>
+          <label for="eventCost">Custo operacional do dia (R$)</label>
+          <input id="eventCost" type="number" step="0.01" min="0" required />
+        </div>
+      </form>
+      <div class="button-row">
+        <button id="saveEventBtn" class="btn btn-primary" type="button">Salvar evento</button>
+        <button id="clearFormBtn" class="btn btn-secondary" type="button">Limpar formulário</button>
+        <button id="deleteEventBtn" class="btn btn-danger" type="button" style="display:none">Excluir evento</button>
+      </div>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)" />
+
+      <h3 style="margin:0 0 8px;font-size:15px">Eventos cadastrados</h3>
+      <p class="description">Clique em um evento para carregar os dados no formulário acima e editar, se necessário.</p>
+      <div style="max-height:280px;overflow:auto;border-radius:8px;border:1px solid var(--border);background:#fff;">
+        <table aria-label="Lista de eventos">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Evento</th>
+              <th>Local</th>
+              <th class="align-right">Custo (R$)</th>
+            </tr>
+          </thead>
+          <tbody id="eventsTableBody">
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">Nenhum evento cadastrado ainda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Aba 2: Calendário mensal -->
+    <section id="tab2" class="tab" aria-label="Calendário mensal">
+      <h2>Calendário mensal de eventos</h2>
+      <p class="description">Visualize os eventos em formato de calendário e veja rapidamente o custo operacional total de cada mês.</p>
+
+      <div class="flex-row">
+        <div>
+          <label for="calendarMonth">Mês</label>
+          <input id="calendarMonth" type="month" />
+        </div>
+        <div>
+          <div id="calendarMonthLabel" style="font-size:13px;color:var(--text-muted);"></div>
+          <div id="calendarMonthCost" class="summary-box">Nenhum mês selecionado.</div>
+        </div>
+      </div>
+
+      <div class="calendar-container" aria-label="Calendário">
+        <div class="calendar-header">
+          <div>Seg</div>
+          <div>Ter</div>
+          <div>Qua</div>
+          <div>Qui</div>
+          <div>Sex</div>
+          <div>Sáb</div>
+          <div>Dom</div>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+    </section>
+
+    <!-- Aba 3: Resultado mensal -->
+    <section id="tab3" class="tab" aria-label="Resultado financeiro do mês">
+      <h2>Resultado financeiro do mês</h2>
+      <p class="description">Selecione um mês, veja o custo operacional total, informe o valor de entrada financeira e veja quanto sobra ou falta.</p>
+
+      <div class="flex-row">
+        <div>
+          <label for="resultMonth">Mês</label>
+          <input id="resultMonth" type="month" />
+        </div>
+        <div>
+          <div id="resultMonthSummary" class="summary-box">Nenhum mês selecionado.</div>
+        </div>
+      </div>
+
+      <div style="max-width:480px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div>
+          <label for="monthlyEntrada">Entrada financeira do mês (R$)</label>
+          <input id="monthlyEntrada" type="number" step="0.01" min="0" />
+        </div>
+        <div>
+          <label>Resultado do mês</label>
+          <div id="monthlyResult" class="summary-box">Informe o mês e a entrada para ver o resultado.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Aba 4: Resumo em planilha -->
+    <section id="tab4" class="tab" aria-label="Resumo mensal em planilha">
+      <h2>Resumo mensal em formato de planilha</h2>
+      <p class="description">Veja, mês a mês, o custo operacional total, informe as entradas financeiras e acompanhe o valor que sobra ou falta.</p>
+
+      <div style="max-height:340px;overflow:auto;border-radius:8px;border:1px solid var(--border);background:#fff;">
+        <table aria-label="Resumo mensal">
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th class="align-right">Custo (R$)</th>
+              <th class="align-right">Entrada (R$)</th>
+              <th class="align-right">Resultado</th>
+            </tr>
+          </thead>
+          <tbody id="summaryTableBody">
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">Nenhum dado mensal disponível ainda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de detalhes do evento (calendário) -->
+  <div id="eventModalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="eventModalTitle">Detalhes do evento</h3>
+        <button id="closeModalBtn" class="btn btn-secondary" type="button">Fechar</button>
+      </div>
+      <div id="eventModalContent" class="modal-content"></div>
+      <div style="margin-top:12px;text-align:right;font-size:12px;">
+        <button id="editFromModalBtn" class="btn btn-primary" type="button">Editar na aba de eventos</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      events: [],
+      entradasMensais: {},
+      nextId: 1,
+      currentMonthKey: null
+    };
+
+    function getMonthKeyFromDate(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('-');
+      if (parts.length < 2) return null;
+      return parts[0] + '-' + parts[1];
+    }
+
+    function formatCurrency(value) {
+      if (isNaN(value)) value = 0;
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    }
+
+    function formatMonthLabel(monthKey) {
+      if (!monthKey) return '';
+      const parts = monthKey.split('-');
+      if (parts.length < 2) return monthKey;
+      const year = Number(parts[0]);
+      const monthIndex = Number(parts[1]) - 1;
+      const d = new Date(year, monthIndex, 1);
+      return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('section.tab').forEach(sec => {
+        sec.classList.toggle('active', sec.id === tabId);
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+      });
+      if (tabId === 'tab2') renderCalendar();
+      if (tabId === 'tab3') updateMonthlyResultView();
+      if (tabId === 'tab4') renderSummaryTable();
+    }
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        switchTab(tabId);
+      });
+    });
+
+    function clearEventForm() {
+      document.getElementById('eventForm').reset();
+      document.getElementById('eventId').value = '';
+      document.getElementById('deleteEventBtn').style.display = 'none';
+      document.getElementById('saveEventBtn').textContent = 'Salvar evento';
+    }
+
+    function refreshEventsTable() {
+      const tbody = document.getElementById('eventsTableBody');
+      tbody.innerHTML = '';
+      if (state.events.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.style.textAlign = 'center';
+        td.style.color = 'var(--text-muted)';
+        td.style.padding = '16px';
+        td.textContent = 'Nenhum evento cadastrado ainda.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      const sorted = [...state.events].sort((a,b) => a.date.localeCompare(b.date));
+      for (const ev of sorted) {
+        const tr = document.createElement('tr');
+        tr.classList.add('clickable');
+        tr.addEventListener('click', () => loadEventIntoForm(ev.id));
+        const d = document.createElement('td');
+        d.textContent = ev.date ? new Date(ev.date).toLocaleDateString('pt-BR') : '';
+        const n = document.createElement('td');
+        n.textContent = ev.name || '';
+        const l = document.createElement('td');
+        l.textContent = ev.location || '';
+        const c = document.createElement('td');
+        c.className = 'align-right';
+        c.textContent = formatCurrency(ev.cost || 0);
+        tr.appendChild(d);
+        tr.appendChild(n);
+        tr.appendChild(l);
+        tr.appendChild(c);
+        tbody.appendChild(tr);
+      }
+      renderCalendar();
+      updateMonthlyResultView();
+      renderSummaryTable();
+    }
+
+    function loadEventIntoForm(id) {
+      const ev = state.events.find(e => e.id === id);
+      if (!ev) return;
+      document.getElementById('eventId').value = ev.id;
+      document.getElementById('eventName').value = ev.name || '';
+      document.getElementById('eventDate').value = ev.date || '';
+      document.getElementById('eventTime').value = ev.time || '';
+      document.getElementById('eventLocation').value = ev.location || '';
+      document.getElementById('eventPackage').value = ev.package || '';
+      document.getElementById('eventTeam').value = ev.team || '';
+      document.getElementById('eventCost').value = ev.cost != null ? ev.cost : '';
+      document.getElementById('deleteEventBtn').style.display = 'inline-flex';
+      document.getElementById('saveEventBtn').textContent = 'Salvar alterações';
+      switchTab('tab1');
+    }
+
+    function saveEvent() {
+      const idVal = document.getElementById('eventId').value;
+      const name = document.getElementById('eventName').value.trim();
+      const date = document.getElementById('eventDate').value;
+      const time = document.getElementById('eventTime').value;
+      const location = document.getElementById('eventLocation').value.trim();
+      const pkg = document.getElementById('eventPackage').value.trim();
+      const team = document.getElementById('eventTeam').value.trim();
+      const costStr = document.getElementById('eventCost').value;
+      const cost = parseFloat(costStr.replace(',', '.'));
+      if (!name || !date || isNaN(cost)) {
+        alert('Preencha pelo menos nome, data e custo operacional.');
+        return;
+      }
+      if (cost < 0) {
+        alert('O custo não pode ser negativo.');
+        return;
+      }
+      if (idVal) {
+        const ev = state.events.find(e => e.id === Number(idVal));
+        if (ev) {
+          ev.name = name;
+          ev.date = date;
+          ev.time = time;
+          ev.location = location;
+          ev.package = pkg;
+          ev.team = team;
+          ev.cost = cost;
+        }
+      } else {
+        const newEv = {
+          id: state.nextId++,
+          name,
+          date,
+          time,
+          location,
+          package: pkg,
+          team,
+          cost
+        };
+        state.events.push(newEv);
+      }
+      clearEventForm();
+      refreshEventsTable();
+    }
+
+    function deleteEvent() {
+      const idVal = document.getElementById('eventId').value;
+      if (!idVal) return;
+      if (!confirm('Tem certeza que deseja excluir este evento?')) return;
+      const id = Number(idVal);
+      state.events = state.events.filter(e => e.id !== id);
+      clearEventForm();
+      refreshEventsTable();
+    }
+
+    document.getElementById('saveEventBtn').addEventListener('click', saveEvent);
+    document.getElementById('clearFormBtn').addEventListener('click', clearEventForm);
+    document.getElementById('deleteEventBtn').addEventListener('click', deleteEvent);
+
+    function renderCalendar() {
+      const monthInput = document.getElementById('calendarMonth');
+      let monthKey = monthInput.value;
+      if (!monthKey) {
+        const now = new Date();
+        const mk = now.toISOString().slice(0, 7);
+        monthKey = mk;
+        monthInput.value = mk;
+      }
+      state.currentMonthKey = monthKey;
+      const labelEl = document.getElementById('calendarMonthLabel');
+      labelEl.textContent = 'Mês selecionado: ' + formatMonthLabel(monthKey);
+
+      const eventsInMonth = state.events.filter(ev => getMonthKeyFromDate(ev.date) === monthKey);
+      const totalCost = eventsInMonth.reduce((sum, ev) => sum + (ev.cost || 0), 0);
+      const costEl = document.getElementById('calendarMonthCost');
+      if (eventsInMonth.length === 0) {
+        costEl.textContent = 'Nenhum evento neste mês.';
+      } else {
+        costEl.textContent = 'Custo operacional total do mês: ' + formatCurrency(totalCost);
+      }
+
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      const [yearStr, monthStr] = monthKey.split('-');
+      const year = Number(yearStr);
+      const monthIndex = Number(monthStr) - 1;
+      const firstDay = new Date(year, monthIndex, 1);
+      let startWeekday = firstDay.getDay();
+      if (startWeekday === 0) startWeekday = 7;
+      const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+      for (let i = 1; i < startWeekday; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day';
+        grid.appendChild(emptyCell);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day';
+        const dayNum = document.createElement('div');
+        dayNum.className = 'calendar-day-number';
+        dayNum.textContent = String(day);
+        cell.appendChild(dayNum);
+        const dayStr = String(day).padStart(2, '0');
+        const dateStr = monthKey + '-' + dayStr;
+        const dayEvents = eventsInMonth.filter(ev => ev.date === dateStr);
+        for (const ev of dayEvents) {
+          const badge = document.createElement('div');
+          badge.className = 'calendar-event';
+          badge.textContent = ev.name || 'Evento';
+          badge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEventModal(ev.id);
+          });
+          cell.appendChild(badge);
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    document.getElementById('calendarMonth').addEventListener('change', renderCalendar);
+
+    function openEventModal(id) {
+      const ev = state.events.find(e => e.id === id);
+      if (!ev) return;
+      const content = document.getElementById('eventModalContent');
+      const items = [];
+      items.push('<p><strong>Nome:</strong> ' + (ev.name || '-') + '</p>');
+      items.push('<p><strong>Data:</strong> ' + (ev.date ? new Date(ev.date).toLocaleDateString('pt-BR') : '-') + '</p>');
+      items.push('<p><strong>Hora:</strong> ' + (ev.time || '-') + '</p>');
+      items.push('<p><strong>Local:</strong> ' + (ev.location || '-') + '</p>');
+      items.push('<p><strong>Pacote:</strong> ' + (ev.package || '-') + '</p>');
+      items.push('<p><strong>Equipe:</strong> ' + (ev.team || '-') + '</p>');
+      items.push('<p><strong>Custo operacional:</strong> ' + formatCurrency(ev.cost || 0) + '</p>');
+      content.innerHTML = items.join('');
+      document.getElementById('editFromModalBtn').onclick = () => {
+        closeEventModal();
+        loadEventIntoForm(ev.id);
+      };
+      document.getElementById('eventModalBackdrop').classList.add('active');
+    }
+
+    function closeEventModal() {
+      document.getElementById('eventModalBackdrop').classList.remove('active');
+    }
+
+    document.getElementById('closeModalBtn').addEventListener('click', closeEventModal);
+    document.getElementById('eventModalBackdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'eventModalBackdrop') closeEventModal();
+    });
+
+    function updateMonthlyResultView() {
+      const monthInput = document.getElementById('resultMonth');
+      let monthKey = monthInput.value;
+      if (!monthKey) {
+        const now = new Date();
+        const mk = now.toISOString().slice(0, 7);
+        monthKey = mk;
+        monthInput.value = mk;
+      }
+      const eventsInMonth = state.events.filter(ev => getMonthKeyFromDate(ev.date) === monthKey);
+      const totalCost = eventsInMonth.reduce((sum, ev) => sum + (ev.cost || 0), 0);
+      const summaryEl = document.getElementById('resultMonthSummary');
+      const label = formatMonthLabel(monthKey);
+      if (eventsInMonth.length === 0) {
+        summaryEl.textContent = 'Nenhum evento em ' + label + '. Custo operacional total do mês: ' + formatCurrency(0);
+      } else {
+        summaryEl.textContent = 'Mês ' + label + ' | Custo operacional total: ' + formatCurrency(totalCost);
+      }
+      const entradaInput = document.getElementById('monthlyEntrada');
+      const storedEntrada = state.entradasMensais[monthKey];
+      entradaInput.value = storedEntrada != null ? storedEntrada : '';
+      computeMonthlyResult();
+    }
+
+    document.getElementById('resultMonth').addEventListener('change', updateMonthlyResultView);
+    document.getElementById('monthlyEntrada').addEventListener('input', () => {
+      const monthKey = document.getElementById('resultMonth').value;
+      if (!monthKey) return;
+      const valStr = document.getElementById('monthlyEntrada').value;
+      if (valStr === '') {
+        delete state.entradasMensais[monthKey];
+      } else {
+        const val = parseFloat(valStr.replace(',', '.'));
+        if (!isNaN(val) && val >= 0) {
+          state.entradasMensais[monthKey] = val;
+        }
+      }
+      computeMonthlyResult();
+      renderSummaryTable();
+    });
+
+    function computeMonthlyResult() {
+      const monthKey = document.getElementById('resultMonth').value;
+      const eventsInMonth = state.events.filter(ev => getMonthKeyFromDate(ev.date) === monthKey);
+      const totalCost = eventsInMonth.reduce((sum, ev) => sum + (ev.cost || 0), 0);
+      const entrada = state.entradasMensais[monthKey] != null ? state.entradasMensais[monthKey] : null;
+      const resultEl = document.getElementById('monthlyResult');
+      if (entrada == null) {
+        resultEl.textContent = 'Informe o valor de entrada financeira do mês para ver o resultado.';
+        resultEl.style.color = 'inherit';
+        resultEl.style.background = '#eff6ff';
+        return;
+      }
+      const result = entrada - totalCost;
+      let msg;
+      if (result > 0) {
+        msg = 'Sobrou ' + formatCurrency(result) + ' neste mês.';
+        resultEl.style.background = '#dcfce7';
+        resultEl.style.color = '#166534';
+      } else if (result < 0) {
+        msg = 'Faltou ' + formatCurrency(-result) + ' neste mês.';
+        resultEl.style.background = '#fee2e2';
+        resultEl.style.color = '#b91c1c';
+      } else {
+        msg = 'Empatou: resultado zero neste mês.';
+        resultEl.style.background = '#e5e7eb';
+        resultEl.style.color = '#374151';
+      }
+      resultEl.textContent = msg + ' (Entrada ' + formatCurrency(entrada) + ' - Custo ' + formatCurrency(totalCost) + ')';
+    }
+
+    function renderSummaryTable() {
+      const tbody = document.getElementById('summaryTableBody');
+      tbody.innerHTML = '';
+      const monthKeysSet = new Set();
+      for (const ev of state.events) {
+        const mk = getMonthKeyFromDate(ev.date);
+        if (mk) monthKeysSet.add(mk);
+      }
+      for (const mk in state.entradasMensais) {
+        monthKeysSet.add(mk);
+      }
+      const monthKeys = Array.from(monthKeysSet).sort();
+      if (monthKeys.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.style.textAlign = 'center';
+        td.style.color = 'var(--text-muted)';
+        td.style.padding = '16px';
+        td.textContent = 'Nenhum dado mensal disponível ainda.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      for (const mk of monthKeys) {
+        const eventsInMonth = state.events.filter(ev => getMonthKeyFromDate(ev.date) === mk);
+        const totalCost = eventsInMonth.reduce((sum, ev) => sum + (ev.cost || 0), 0);
+        const entrada = state.entradasMensais[mk] != null ? state.entradasMensais[mk] : null;
+        const result = entrada != null ? entrada - totalCost : null;
+
+        const tr = document.createElement('tr');
+        const tdMonth = document.createElement('td');
+        tdMonth.textContent = formatMonthLabel(mk);
+        const tdCost = document.createElement('td');
+        tdCost.className = 'align-right';
+        tdCost.textContent = formatCurrency(totalCost);
+        const tdEntrada = document.createElement('td');
+        tdEntrada.className = 'align-right';
+        const entradaInput = document.createElement('input');
+        entradaInput.type = 'number';
+        entradaInput.step = '0.01';
+        entradaInput.min = '0';
+        entradaInput.style.width = '100%';
+        entradaInput.value = entrada != null ? entrada : '';
+        entradaInput.addEventListener('input', () => {
+          const valStr = entradaInput.value;
+          if (valStr === '') {
+            delete state.entradasMensais[mk];
+          } else {
+            const val = parseFloat(valStr.replace(',', '.'));
+            if (!isNaN(val) && val >= 0) {
+              state.entradasMensais[mk] = val;
+            }
+          }
+          updateMonthlyResultView();
+          renderSummaryTable();
+        });
+        tdEntrada.appendChild(entradaInput);
+
+        const tdResult = document.createElement('td');
+        tdResult.className = 'align-right';
+        const pill = document.createElement('span');
+        pill.className = 'status-pill';
+        if (result == null) {
+          pill.textContent = 'Sem entrada';
+          pill.classList.add('status-neutral');
+        } else if (result > 0) {
+          pill.textContent = 'Sobra ' + formatCurrency(result);
+          pill.classList.add('status-positive');
+        } else if (result < 0) {
+          pill.textContent = 'Falta ' + formatCurrency(-result);
+          pill.classList.add('status-negative');
+        } else {
+          pill.textContent = 'Empate';
+          pill.classList.add('status-neutral');
+        }
+        tdResult.appendChild(pill);
+
+        tr.appendChild(tdMonth);
+        tr.appendChild(tdCost);
+        tr.appendChild(tdEntrada);
+        tr.appendChild(tdResult);
+        tbody.appendChild(tr);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const now = new Date();
+      const mk = now.toISOString().slice(0, 7);
+      document.getElementById('calendarMonth').value = mk;
+      document.getElementById('resultMonth').value = mk;
+      renderCalendar();
+      updateMonthlyResultView();
+      renderSummaryTable();
+    });
+  </script>
+</body>
+</html>
