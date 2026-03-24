@@ -449,12 +449,36 @@
   </div>
 
   <script>
+    // ===========================================
+    // FIX: Garantir que localStorage só rode no browser
+    // ===========================================
+    function isBrowser() {
+      return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+    }
+
     const state = {
       events: [],
       entradasMensais: {},
       nextId: 1,
       currentMonthKey: null
     };
+
+    // Carregar dados salvos
+    if (isBrowser()) {
+      const savedData = localStorage.getItem('controleEventosData');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        state.events = parsed.events || [];
+        state.entradasMensais = parsed.entradasMensais || {};
+        state.nextId = parsed.nextId || 1;
+      }
+    }
+
+    function saveData() {
+      if (isBrowser()) {
+        localStorage.setItem('controleEventosData', JSON.stringify(state));
+      }
+    }
 
     function getMonthKeyFromDate(dateStr) {
       if (!dateStr) return null;
@@ -505,6 +529,7 @@
     }
 
     function refreshEventsTable() {
+      saveData(); // Salva sempre que atualiza tabela
       const tbody = document.getElementById('eventsTableBody');
       tbody.innerHTML = '';
       if (state.events.length === 0) {
@@ -602,6 +627,7 @@
         };
         state.events.push(newEv);
       }
+      saveData();
       clearEventForm();
       refreshEventsTable();
     }
@@ -612,6 +638,7 @@
       if (!confirm('Tem certeza que deseja excluir este evento?')) return;
       const id = Number(idVal);
       state.events = state.events.filter(e => e.id !== id);
+      saveData();
       clearEventForm();
       refreshEventsTable();
     }
@@ -620,6 +647,7 @@
     document.getElementById('clearFormBtn').addEventListener('click', clearEventForm);
     document.getElementById('deleteEventBtn').addEventListener('click', deleteEvent);
 
+    // Resto do código permanece igual...
     function renderCalendar() {
       const monthInput = document.getElementById('calendarMonth');
       let monthKey = monthInput.value;
@@ -682,6 +710,7 @@
       }
     }
 
+    // [Resto das funções permanece igual ao código original - renderCalendar, updateMonthlyResultView, etc.]
     document.getElementById('calendarMonth').addEventListener('change', renderCalendar);
 
     function openEventModal(id) {
@@ -750,6 +779,7 @@
           state.entradasMensais[monthKey] = val;
         }
       }
+      saveData();
       computeMonthlyResult();
       renderSummaryTable();
     });
@@ -785,6 +815,7 @@
     }
 
     function renderSummaryTable() {
+      saveData();
       const tbody = document.getElementById('summaryTableBody');
       tbody.innerHTML = '';
       const monthKeysSet = new Set();
@@ -838,6 +869,7 @@
               state.entradasMensais[mk] = val;
             }
           }
+          saveData();
           updateMonthlyResultView();
           renderSummaryTable();
         });
@@ -871,6 +903,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      refreshEventsTable(); // Carrega dados salvos e atualiza UI
       const now = new Date();
       const mk = now.toISOString().slice(0, 7);
       document.getElementById('calendarMonth').value = mk;
@@ -879,6 +912,12 @@
       updateMonthlyResultView();
       renderSummaryTable();
     });
+
+    // Salva dados também no unload (fecha aba)
+    if (isBrowser()) {
+      window.addEventListener('beforeunload', saveData);
+      window.addEventListener('pagehide', saveData);
+    }
   </script>
 </body>
 </html>
